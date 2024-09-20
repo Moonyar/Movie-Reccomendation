@@ -1,22 +1,23 @@
-from pyspark.sql import SparkSession
 from pyspark.ml.recommendation import ALS
 from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.sql import functions as F, SparkSession
 
 ################### SPARK ##################
-spark = SparkSession.builder.appName("movie Recommendation").getOrCreate()
+spark = SparkSession.builder.appName("movie Recommendation with Hadoop").getOrCreate()
 
 ########### Load the prepped data ##############
-als_data = spark.read.parquet("../datasets/als.parquet")
+# als_data = spark.read.parquet("../datasets/als.parquet")
+als_data = spark.read.parquet("hdfs:///user/mahyar/datasets/als.parquet")
 
-# I will first train the data with userID, movieID, and rating for ALS
-als_data_filtered = als_data.select("userId", "movieId", "rating")
-als_data_filtered.cache()
+als_data.show(5)
+# cache
+als_data.cache()
 
 ##### Split #########
-(training, test) = als_data_filtered.randomSplit([0.8,0.2]) #TODO: tweakable
+(training, test) = als_data.randomSplit([0.8,0.2]) #TODO: tweakable
 
 ##### Train ####
-als = ALS(userCol="userId", itemCol="movieId", ratingCol="rating", nonnegative= True, coldStartStrategy="drop")
+als = ALS(maxIter= 10, regParam = 0.1, userCol="userId", itemCol="movieId", ratingCol="rating", nonnegative= True, coldStartStrategy="drop")
 
 als_model = als.fit(training)
 
@@ -26,3 +27,6 @@ predictions = als_model.transform(test)
 evaluator = RegressionEvaluator(metricName="rmse", labelCol="rating", predictionCol="prediction")
 rmse = evaluator.evaluate(predictions)
 print(f"root main sqaure error = {rmse}")
+
+# predictions.show(50)
+# we got root main sqaure error = 0.8149086762553105. which is not bad but not great! let's start fine tuning this
