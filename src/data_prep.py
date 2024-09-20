@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, split, explode
+from pyspark.sql.functions import col, split, explode, collect_list, concat_ws
+import matplotlib.pyplot as plt
 
 ##################### Spark ######################################
 spark = SparkSession.builder.appName("Movie Recommendation").getOrCreate()
@@ -61,4 +62,40 @@ ratings_movies_tags = ratings_movies_tags.na.fill({"UDG": "No UDG"})
 
 # Count the number of ratings for each movie
 movie_counts = ratings_movies_tags.groupBy("movieId", "title").count().orderBy("count", ascending=False)
-movie_counts.show(100)
+# movie_counts.show(100)
+
+# now I want to see if I can get rid of the movies that have less than 20 ratings.
+# first I want to check if 20 is a good approximation for this task or if we should even do this!
+#
+# how many movies have fewer than 20 ratings
+# movies_less_than_20_ratings = movie_counts.filter(col("count") < 20)
+# num_movies_less_than_20 = movies_less_than_20_ratings.count()
+# print(f"Number of movies with less than 20 ratings: {num_movies_less_than_20}")
+
+# I want a histogram to better understand
+# movie_counts_pandas = movie_counts.toPandas()
+# Plot a histogram
+# plt.figure(figsize=(10, 6))
+# plt.hist(movie_counts_pandas['count'], bins=50, color='blue', edgecolor='black')
+# plt.title('Histogram of Movie Ratings Counts')
+# plt.xlabel('Number of Ratings')
+# plt.ylabel('Number of Movies')
+# plt.grid(True)
+# plt.show()
+################################ a lot of our data lies between 0 and 1000 so this I will continue with the data as is
+# and see how accuarte the MLA will be ################# might come back to this!
+
+###################### final prep ##########################
+# ratings_movies_tags = (ratings_movies_tags.groupBy("userId","movieId","rating","title","genres").
+#                       agg(concat_ws(",",collect_list("UDG")).alias("all_tags")))
+
+# ratings_movies_tags.show(100)
+# okay the UDG has way too many missing values. we get rid of it for now and see how accurate the MLA is. we might come back to this too!
+
+ratings_movies_tags = ratings_movies_tags.drop("UDG")
+# ratings_movies_tags.show(100)
+
+als_data = ratings_movies_tags
+
+als_data.write.parquet("../datasets/als.parquet", mode = "overwrite")
+print("Data prep finished and saved in als.parquet")
