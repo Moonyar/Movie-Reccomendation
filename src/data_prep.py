@@ -3,16 +3,23 @@ from pyspark.sql.functions import col, split, explode, collect_list, concat_ws
 import matplotlib.pyplot as plt
 
 ##################### Spark ######################################
-spark = SparkSession.builder.appName("Movie Recommendation").getOrCreate()
+spark = SparkSession.builder.appName("Movie Recommendation").config("spark.hadoop.fs.defaultFS","hdfs://localhost:9000").getOrCreate()
 
 
 
 ########################### Loading Data ##############################################
-ratings = spark.read.csv("../datasets/ratings.csv", header=True, inferSchema=True)
-movies = spark.read.csv("../datasets/movies.csv", header=True, inferSchema=True)
-tags = spark.read.csv("../datasets/tags.csv", header=True, inferSchema=True)
-genome_scores = spark.read.csv("../datasets/genome-scores.csv", header=True, inferSchema=True)
-genome_tags = spark.read.csv("../datasets/genome-tags.csv", header=True, inferSchema=True)
+# ratings = spark.read.csv("../datasets/ratings.csv", header=True, inferSchema=True)
+# movies = spark.read.csv("../datasets/movies.csv", header=True, inferSchema=True)
+# tags = spark.read.csv("../datasets/tags.csv", header=True, inferSchema=True)
+# genome_scores = spark.read.csv("../datasets/genome-scores.csv", header=True, inferSchema=True)
+# genome_tags = spark.read.csv("../datasets/genome-tags.csv", header=True, inferSchema=True)
+
+##### load data from hdfs ################3
+ratings = spark.read.csv("hdfs://localhost:9000/datasets/ratings.csv", header=True, inferSchema=True)
+movies = spark.read.csv("hdfs://localhost:9000/datasets/movies.csv", header=True, inferSchema=True)
+tags = spark.read.csv("hdfs://localhost:9000/datasets/tags.csv", header=True, inferSchema=True)
+genome_scores = spark.read.csv("hdfs://localhost:9000/datasets/genome-scores.csv", header=True, inferSchema=True)
+genome_tags = spark.read.csv("hdfs://localhost:9000/datasets/genome-tags.csv", header=True, inferSchema=True)
 
 ############################ exploring the data a little bit here ###########################
 # ratings.show(5)
@@ -61,7 +68,7 @@ ratings_movies_tags = ratings_movies_tags.na.fill({"UDG": "No UDG"})
 #ratings_movies_tags.printSchema()
 
 # Count the number of ratings for each movie
-movie_counts = ratings_movies_tags.groupBy("movieId", "title").count().orderBy("count", ascending=False)
+# movie_counts = ratings_movies_tags.groupBy("movieId", "title").count().orderBy("count", ascending=False)
 # movie_counts.show(100)
 
 # now I want to see if I can get rid of the movies that have less than 20 ratings.
