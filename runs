@@ -1,0 +1,21 @@
+####################### RUN 1 ###########################
+Best Rank: 10
+Best MaxIter: 10
+Best RegParam: 0.1
+fold = 3
+root main sqaure error = 0.806536604617815
+
+
+############## RUN 2 ###################
+Best Rank: 10
+Best MaxIter: 15
+Best RegParam: 0.15
+fold = 3
+root main sqaure error = 0.8343691892142375
+
+################ RUN 3 ####################
+Best Rank: 10
+Best MaxIter: 20
+Best RegParam: 0.5
+
+root main sqaure error = 0.9968698495627818
